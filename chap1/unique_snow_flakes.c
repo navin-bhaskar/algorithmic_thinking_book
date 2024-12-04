@@ -98,13 +98,13 @@ int main() {
 
    for(int i=0; i<total_snowflakes; i++) {
         PayLoad *cur = malloc(sizeof(struct PayLoad));
-        cur->next = NULL;
-
+        
         if (cur == NULL) {
             printf("Error allocating memory");
             exit(1);
         }
 
+        cur->next = NULL;
         for(int j=0; j<6; j++) {
             scanf("%d", &cur->data[j]);
         }
