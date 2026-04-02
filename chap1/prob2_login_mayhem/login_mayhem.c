@@ -4,6 +4,7 @@
 
 #define MAX_PWD_SIZE 10U
 #define HASH_SIZE 10000U
+#define NUM_OF_BITS 20
 
 typedef struct PasswordNode {
     char password[MAX_PWD_SIZE+1];
@@ -12,11 +13,12 @@ typedef struct PasswordNode {
 } PasswordNode;
 
 int compute_hash(char password[], int hash_map_size) {
-    int hash_value = 0;
-    for (int i = 0; password[i] != '\0'; i++) {
-        hash_value += password[i];
+    unsigned long hash = 5381;
+    int c;
+    while ((c = *password++)) {
+        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
     }
-    return hash_value % hash_map_size;
+    return hash % hash_map_size;
 }
 
 PasswordNode *lookup_password(PasswordNode* hash_map[], char password[], int hash_map_size) {
