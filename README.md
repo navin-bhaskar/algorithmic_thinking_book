@@ -16,5 +16,10 @@ run the test cases to generate executable without tests case, as expected by DMO
 #### Problem 2: Login Mayhem
 Link: https://dmoj.ca/problem/coci17c1p3hard
 
+This problem is also solved by using a hashmap. The problem requires you to implement two operations 
+1. Add a password
+2. Check if the proposed password appears as a substring in how many passwords
+
+cd to `chap1/prob2_login_mayhem` compile with `gcc login_mayhem.c -o login_mayhem` to generate executable for dmoj style input compile with `gcc -DTESTS login_mayhem.c -o login_mayhem` to generate executable with tests cases.
 
 
