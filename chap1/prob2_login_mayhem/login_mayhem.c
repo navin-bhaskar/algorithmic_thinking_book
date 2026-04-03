@@ -2,6 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef TESTS
+#include "../../common/unit_tester.h"
+#endif
+
+
 #define MAX_PWD_SIZE 10U
 #define HASH_SIZE 10000U
 #define NUM_OF_BITS 20
@@ -83,6 +88,75 @@ void add_password_sub_str(PasswordSubStrNode* hash_map[], char sub_password[], i
     hash_map[hash_value] = new_sub_str_node;
 }
 
+#ifdef TESTS
+
+TEST_CASE(test_compute_hash_returns_same_hash_for_passwords) {
+    char password1[] = "password123";
+    char password2[] = "password123";
+    int hash_map_size = 10000;
+    ASSERT(compute_hash(password1, hash_map_size) == compute_hash(password2, hash_map_size));
+}
+
+TEST_CASE(test_add_password_adds_a_password_to_hash_map) {
+    PasswordNode* hash_map[HASH_SIZE] = {0}; // initialize hash map with NULL
+    char password[] = "password123";
+    add_password(hash_map, password, HASH_SIZE);
+    PasswordNode* found_password_node = lookup_password(hash_map, password, HASH_SIZE);
+    ASSERT(found_password_node != NULL);
+    ASSERT(strncmp(found_password_node->password, password, MAX_PWD_SIZE) == 0);
+    ASSERT(found_password_node->total_occurance == 1);
+}
+
+TEST_CASE(test_add_password_increments_occurrence_count) {
+    PasswordNode* hash_map[HASH_SIZE] = {0}; // initialize hash map with NULL
+    char password[] = "password123";
+    add_password(hash_map, password, HASH_SIZE);
+    add_password(hash_map, password, HASH_SIZE);
+    PasswordNode* found_password_node = lookup_password(hash_map, password, HASH_SIZE);
+    ASSERT(found_password_node != NULL);
+    ASSERT(strncmp(found_password_node->password, password, MAX_PWD_SIZE) == 0);
+    ASSERT(found_password_node->total_occurance == 2);
+}
+
+TEST_CASE(test_check_if_non_existent_password_is_in_hash_map) {
+    PasswordNode* hash_map[HASH_SIZE] = {0}; // initialize hash map with NULL
+    char password[] = "password123";
+    PasswordNode* found_password_node = lookup_password(hash_map, password, HASH_SIZE);
+    ASSERT(found_password_node == NULL);
+}
+
+TEST_CASE(test_in_lookup_password_different_passwords_with_same_hash) {
+    PasswordNode* hash_map[HASH_SIZE] = {0}; // initialize hash map with NULL
+    char password1[] = "password123";
+    char password2[] = "passw0rd123"; // different password but might have same hash value as password1
+    add_password(hash_map, password1, HASH_SIZE);
+    add_password(hash_map, password2, HASH_SIZE);
+    PasswordNode* found_password_node1 = lookup_password(hash_map, password1, HASH_SIZE);
+    PasswordNode* found_password_node2 = lookup_password(hash_map, password2, HASH_SIZE);
+    ASSERT(found_password_node1 != NULL);
+    ASSERT(found_password_node2 != NULL);
+    ASSERT(strncmp(found_password_node1->password, password1, MAX_PWD_SIZE) == 0);
+    ASSERT(strncmp(found_password_node2->password, password2, MAX_PWD_SIZE) == 0);
+}
+
+TEST_CASE(test_add_password_sub_str_adds_a_sub_password_to_hash_map) {
+    PasswordSubStrNode* hash_map[HASH_SIZE] = {0}; // initialize hash map with NULL
+    char sub_password[] = "pass";
+    add_password_sub_str(hash_map, sub_password, HASH_SIZE);
+    ASSERT(is_password_sub_str_seen(hash_map, sub_password, HASH_SIZE));
+}
+
+int main(void) {
+    REGISTER_TEST(test_compute_hash_returns_same_hash_for_passwords);
+    REGISTER_TEST(test_add_password_adds_a_password_to_hash_map);
+    REGISTER_TEST(test_add_password_increments_occurrence_count);
+    REGISTER_TEST(test_check_if_non_existent_password_is_in_hash_map);
+    REGISTER_TEST(test_in_lookup_password_different_passwords_with_same_hash);
+    REGISTER_TEST(test_add_password_sub_str_adds_a_sub_password_to_hash_map);
+
+    return RUN_ALL_TESTS();
+}
+#else
 
 #define ADD 1
 #define CHECK 2
@@ -98,6 +172,9 @@ int main(void) {
     for(int i=0; i<total_operations; i++) {
         scanf("%d %s", &operation, password);
         if (operation == ADD) {
+            // note: This will cause memory leak on the allocated memeory for the password substrings in the lookup buffer hashmap, 
+            // but since we are only interested in the final output and we are not running this code for a long time,
+            // we can ignore this memory leak for now and not risk running into TLE in dmoj
             memset(password_lookup_buffer, 0, 1000 * sizeof(PasswordSubStrNode*)); // reset the lookup buffer for each new password
             
             // generate all possible sub passwords and add them to the hash map
@@ -138,3 +215,4 @@ int main(void) {
     
     return 0;
 }
+#endif
